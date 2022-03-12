@@ -3,12 +3,6 @@
 #include "string.h"
 #include "time.h"
 
-/*
- * homework 1
- * 22.02.2022
- */
-
-
 
 /*
  * A function for comparing two elements.
@@ -19,13 +13,14 @@
  */
 
 static int comparison(int arg, int a, int b, int * counter) {
-  /* args :
+  /* 
+   * args :
    * -2 --- <
    * -1 --- <=
    *  0 --- ==
    *  1 --- >=
    *  2 --- >
-   * */
+   */
   (*counter)++;
   if(arg == -2 && a < b)
     return 1;
@@ -44,13 +39,18 @@ static int comparison(int arg, int a, int b, int * counter) {
 
 /*
  * Random generation of an array sorted in order.
+ * upd 22.02.2022
  */
 
 static void createArraySorted(int n, int * a) {
-  srand (time(NULL) + 10);
-  a[0] = rand() % (n*10) + 1;
-  for(int i = 1; i < n; i++) {
-    a[i] = a[i-1] + 1;
+  long long int left = -2147483648,
+                size = 4294967296 / n,
+                right = left + size;
+  
+  for(int i = 0; i < n; i++) {
+    a[i] = (int)(rand() % (right - left + 1) + left);
+    right += size;
+    left += size;
   }
 }
 
@@ -58,43 +58,31 @@ static void createArraySorted(int n, int * a) {
 
 /*
  * Random generation of an array sorted in reverse order.
+ * upd 22.02.2022 
  */
 
 static void createArrayReversed(int n, int * a) {
-  srand (time(NULL) + 50);
-  a[0] = rand() % (n*10) + n;
-  for(int i = 1; i < n; i++) {
-    a[i] = a[i-1] - 1;
+  long long int right = 2147483647,
+                size = 4294967296 / n,
+                left = right - size;
+  
+  for(int i = 0; i < n; i++) {
+    a[i] = (int)(right - rand() % (right - left + 1));
+    right -= size;
+    left -= size;
   }
 }
 
 
 
 /*
- * Random array generation 1
- * seed - time
+ * Random array generation
+ * upd 22.02.2022 
  */
 
-static void createArrayRandom1(int n, int * a) {
-  srand (time(NULL));
-  a[0] = rand() % 10000000 + 1;
-  for(int i = 1; i < n; i++) {
-    a[i] = rand() % 10000000 + 1;
-  }
-}
-
-
-
-/*
- * Random array generation 2
- * seed - time + 25500
- */
-
-static void createArrayRandom2(int n, int * a) {
-  srand (time(NULL) + 22500);
-  a[0] = rand() % 1000000 + 1;
-  for(int i = 1; i < n; i++) {
-    a[i] = rand() % 1000000 + 1;
+static void createArrayRandom(int n, int * a) {
+  for(int i = 0; i < n; i++) {
+    a[i] = (int)(-2147483647 + rand() % (4294967296));
   }
 }
 
@@ -105,8 +93,7 @@ static void createArrayRandom2(int n, int * a) {
  */
 
 static void bubleSort(int n, int * a) {
-  int x, *com = malloc(4), mov = 0;
-  *com = 0;
+  int x, *com = calloc(1, sizeof(int)), mov = 0;
 
   for(int i = 1; i < n; i++) {
     for(int j = n-1; j >= i; j--) {
@@ -132,8 +119,7 @@ static void bubleSort(int n, int * a) {
  */
 
 static void qSort(int n, int * a) {
-  int *com = malloc(4), mov = 0;
-  *com = 0;
+  int *com = calloc(1, sizeof(int)), mov = 0;
 
   void sort(int L, int R) {
     int i = L, j = R, w, x = a[ (L+R) / 2];
@@ -175,30 +161,52 @@ static void qSort(int n, int * a) {
  * Based on the selection of an element in the original
  * array and searching for it in the sorted array with checking 
  * the correctness of the position.
+ * 
+ *
+ * An array of flags is created that stores
+ * information about the checked elements
+ * 
+ * upd 22.02.2022 
+ * 
  */
 
 static int testArray(int * a, int * aCopy, int n) {
+  
+  /* 
+   * upd 22.02.2022 
+   * read the annotation
+   */
+  char *arrFlag = calloc(n, 1);
+  
   for(int i = 0; i < n; i++) {
     for(int j = 0; j < n; j++) {
-      if(a[i] == aCopy[j]) {
-        if(j > 0 && aCopy[j-1] > a[i] && aCopy[j-1] != -1) {
+      if( a[i] == aCopy[j] && !arrFlag[j] ) {
+        if(j > 0 && aCopy[j-1] > a[i] && arrFlag[j-1] != 1) {
+          free(arrFlag);
           return 0;
         }
-        if(j < n-1 && aCopy[j+1] < a[i] && aCopy[j+1] != -1) {
+        if(j < n-1 && aCopy[j+1] < a[i] && arrFlag[j+1] != 1) {
+          free(arrFlag);
           return 0;
         }
-        aCopy[j] = -1;
+        arrFlag[j] = 1;
         break;
       }
       if(j == n - 1) {
+        free(arrFlag);
         return 0;
       }
     }
   } 
+  free(arrFlag);
   return 1;
 }
 
 int main(void) {
+  
+  //upd 22.02.2022
+  srand(time(NULL));
+  
   printf("Homework 1\n");
   printf("Bondarenko Ivan 119 group\n");
   printf("Option 1 / 1 / 1 + 4\n");
@@ -228,8 +236,8 @@ int main(void) {
 
   createArraySorted(n, arrSorted);
   createArrayReversed(n, arrReversed);
-  createArrayRandom1(n, arrRandFirst);
-  createArrayRandom2(n, arrRandSecond);
+  createArrayRandom(n, arrRandFirst);
+  createArrayRandom(n, arrRandSecond);
 
 
 
@@ -377,3 +385,68 @@ int main(void) {
 
   return 0;
 }
+
+
+
+
+
+
+
+
+
+
+/* 
+   ----------------------------------:**++++++++++++++++++++++++++++=@
+   ----------------------------------:+++++++***++++++++++++++++++++=@
+   ----------------------------------:+++++*++++++++++++++++++++++++++
+   ---------------------------------::++++++++++++++++++++++++++++++=#
+   ----------------------------::=%%+@@%====%%%%%=++++++++++++++++++=#
+   ----------------------:+====%%@@@@@@#@@%@@@@#@%@=++++++++++++=+++=%
+   --------------------*%%%=%@@##@@@@@@@@@@@@@@@@@#@@%=+++++++++++++++
+   -------------------==%@@##@@@@@@####@@@#%@@#@######@%=+++++=%@@=+=@
+   ----------------:=@@@@@##@###@#####@@####@@#######@#@@%@=@#@%@@===%
+   --------------+%@@#@@##@%%@###@@%@@@###############@@@@@=%=++=%===%
+   ------------*%@@#@%@@@##@@##@%%%@%@@##@@############@###%===%%%%@@@
+   -----------*@@@#@@@########@@%%@@@%@#@%%@###############@@@%%%%%@@@
+   -----------%@@#@@##########@@@%%+++%@%==@###############@###@%%%%@@
+   ----::+=:-+@@#@@#####@@@%%%==+++++%%=%@#@@#############@@@###@%%%@@
+   +%#@=:---:@#@%#######@%==++++***++=@@@@@@@@#############@@####%%%@@
+   @==++*---%@@@######@%+++********+++=@##################@@@@##@%%%@@
+   ###%%*--=@@########=++*****++==%%%%=++===%@################@#@%%%@@
+   =%%@@=:+@#########=++***++=%%%%%%@@####@=+=@################@%%%%@@
+   *+=%@@=@@########%+****++=======%%%%%%@##%====%%%%@########@@%%%%@@
+   =++===%@%#######%++****++=%%@@#@@####@%%%%==%%%@#####@%###@@@%%%%@@
+   %@@@@@@@==@###@@=++*****++++====%%@@##@%=+++=@@#@@@#######@@%%%%%%%
+   @@@@@@@#=+%@=+%@=++*********++==%%@@@%%%=+**+######@%@#####@%%%%=++
+   ##@%@#%@@++*=++++*************++++++++++++**+@@@@####%########@%%++
+   ######%@#@**++**+**++++**********************=@##@%%@%####%*@@@%@##
+   ######@@###%==+++**++++***++++++===+*********+===%%%==#########%@##
+   #####@@@######+++++++++++++===%%%%%==+++++++=+==+***+@#########%@##
+   ##=**+=%@@###@+++++++++====%%%%==++=%%@@#%%%%%%%==+++#@@@#####@%@##
+   =****++==%###%+++++++++++=%====++++===%@@@@@@@@%%%========%%%%%%%%@
+   +***+++==%@##=+++++++++=+===%#@%========%%%%%%@@%%%%#%+****++++++++
+   **+++=%=@@@##++===============%%+=+=+%@@@@@@@@@@%%@####%===+=++++++
+   *++*+==%%%@#@++=============++++=%##@%=+=%##@@%%%%#######@@%=++=%%%
+   +=++==%@@@@#%+++============+++++===%@@@%%%%%%%%@###############@%@
+   ++++==%@@@##==++========++++++++===%%%%%%%%=%%@@###########@#######
+   +=++=%@@@@##=======%====+++++++===%%@@%%%%=%@@#####################
+   ====%%%@@###%======%%%%====+++++==%%%%====%@#######################
+   ##%=@%@@####%%======%%%%%%%=============%@#########################
+   ##%=%=%@@###@%%======%%%%@@@@%%%%%%%%%@@###########################
+   ####%+%%@###@%%%=======%%%%@@@@@@@@@@@##@##########################
+   #####%%%@###@@%%==========%%%%%@@@@@@###@#@########################
+   #####@=@@####@@%%=====%%%%==%%%@@@@@###@@@%@#######################
+   ######=@@######@%%%%%==%%%%%%%@@@@@##@##@@#########################
+   #####%%@@#######@@@@@%%%%%%@@@@@#####@@@%@#########################
+   ####@++%###########################@@%%@@##################@#@#####
+   ####=%@############################@%%@@####################@@@@###
+   I discovered that I’ve got
+   Relatives and they’re my lot
+   They are woods that are so dear
+   Friends of corn and every ear
+   Streams of water, skies of blue
+   I will tell them: “I love you”.
+   It’s the Homeland of mine
+   I will love it all the time.
+  
+*/

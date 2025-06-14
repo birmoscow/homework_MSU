@@ -1,1 +1,1 @@
-The first laboratory work
+The first academic job at the university
